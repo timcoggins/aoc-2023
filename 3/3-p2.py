@@ -1,7 +1,6 @@
-def make():
-    file = open("3/sample.txt")
+def make_table(input):
     out = []
-    for line in file:
+    for line in input:
         line = line.rstrip()
         x = []
         for char in line:
@@ -9,61 +8,62 @@ def make():
         out.append(x)
     return out
 
-def is_symbol(char):
-    if char == '*':
+def is_number(char):
+    if 47 < ord(char) < 58:
         return True
     return False
 
-def in_range(x, y):
-    if 0 <= x <= 139 and 0 <= y <= 139:
-        return True
+def find_stars(data):
+    out = []
+    for y, row in enumerate(data):
+        for x, col in enumerate(row):
+            char = table[y][x]
+            if char == '*':
+                out.append([y, x]) 
+    return out
+
+def find_numbers(data):
+    out = []
+    for y, row in enumerate(data):
+        num = []
+        for x, col in enumerate(row):
+            char = table[y][x]
+            if is_number(char):
+                num.append(char)
+            else:
+                if len(num):
+                    out.append(["".join(num), y, x - len(num)])
+                    num = []
+        if len(num):
+            out.append(["".join(num), y, x - len(num)])
+    return out
+
+def is_number_nearby(num, y, x):
+    for char in range(0, len(num[0])):
+        ny = num[1]
+        nx = num[2] + char
+
+        if y - 2 < ny < y + 2 and x - 2 < nx < x + 2:
+            return True
+            
     return False
 
-# check if there is a symbol surround the number
-def check(y, x, len):
-    for l in range(y - 1, y + 2): # rows
-        for index in range(x - 1, x + len + 1):
-            if in_range(index, l):
-                current = table[l][index]
-                if is_symbol(current):
-                    return True
-    return False
+def calculate(stars, numbers):
+    total = 0
+    for star in stars:
+        res = []
+        for num in numbers:
+            if is_number_nearby(num, star[0], star[1]):
+                res.append(num)
+        if len(res) == 2:
+            total += int(res[0][0]) * int(res[1][0])
+    return total
 
 
-table = make()
-y = 0
-total = 0
+file = open("3/input.txt")
+table = make_table(file)
+stars = find_stars(table)
+numbers = find_numbers(table)
+result = calculate(stars, numbers)
 
-while y < len(table):
-    x = 0
-    numbers = []
-
-    while x < len(table[0]):
-
-        if 47 < ord(table[y][x]) < 58:
-            z = 0
-            num = []
-            cur = table[y][x]
-
-            while 47 < ord(cur) < 58: 
-                num.append(cur)
-                z += 1
-
-                if in_range(y, x + z):
-                    cur = table[y][x + z]
-                else:
-                    break
-
-            if check(y, x, len(num)):
-                numbers.append("".join(num))
-
-            x += z
-        x += 1
-
-    print(y, 'valid', numbers)
-
-    for n in numbers:
-        total += int(n)
-    y += 1
-
-print(total)
+print(result)
